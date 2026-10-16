@@ -222,4 +222,40 @@ public class TransactionService
             return "OK|Transferred " + amount.ToString("F2");
         }
     }
+
+    public string LookupAccount(string accountNumber)
+    {
+        using (SqlConnection conn = new SqlConnection(_connectionString))
+        {
+            conn.Open();
+
+            string query = @"SELECT a.AccountNumber, a.Type, a.Balance, a.Status,
+                                    c.FirstName, c.LastName
+                             FROM Accounts a
+                             INNER JOIN Customers c ON a.CustomerID = c.CustomerID
+                             WHERE a.AccountNumber = @acc";
+
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@acc", accountNumber);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (!reader.Read())
+                    {
+                        return "ERROR|Account not found";
+                    }
+
+                    string firstName = reader["FirstName"].ToString() ?? "";
+                    string lastName = reader["LastName"].ToString() ?? "";
+                    string type = reader["Type"].ToString() ?? "";
+                    decimal balance = Convert.ToDecimal(reader["Balance"]);
+
+                    return "OK|" + firstName + "|" + lastName + "|" + type + "|" + balance.ToString("F2");
+                }
+            }
+        }
+    }
+
+
 }

@@ -128,6 +128,15 @@ public class ClientHandler
 
             return _transactionService.Transfer(parts[1], parts[2], decimal.Parse(parts[3]), _loggedInUser.UserID);
         }
+        if (command == "LOOKUP")
+        {
+            if (parts.Length < 2)
+            {
+                return MessageProtocol.Build(MessageProtocol.ResponseError, "Missing account number");
+            }
+
+            return _transactionService.LookupAccount(parts[1]);
+        }
 
         return MessageProtocol.Build(MessageProtocol.ResponseError, "Unknown command");
     }
