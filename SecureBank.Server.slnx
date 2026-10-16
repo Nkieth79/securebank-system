@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Database/">
+    <File Path="Check.sql" />
+    <File Path="CreateDatabase.sql" />
+  </Folder>
+  <Project Path="SecureBank.Client/SecureBank.Client.csproj" />
+  <Project Path="SecureBank.Server/SecureBank.Server.csproj" />
+  <Project Path="SecureBank.Shared/SecureBank.Shared.csproj" />
+  <Project Path="TestClient/TestClient.csproj" />
+</Solution>
