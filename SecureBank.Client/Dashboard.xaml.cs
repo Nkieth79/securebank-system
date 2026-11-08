@@ -4,14 +4,14 @@ using System.Windows;
 
 namespace SecureBank.Client;
 
-public partial class TellerDashboard : Window
+public partial class Dashboard : Window
 {
     private readonly TcpClient _client;
     private readonly NetworkStream _stream;
     private readonly string _userFullName;
     private readonly string _userRole;
 
-    public TellerDashboard(TcpClient client, string fullName, string role)
+    public Dashboard(TcpClient client, string fullName, string role)
     {
         InitializeComponent();
         _client = client;
@@ -20,7 +20,24 @@ public partial class TellerDashboard : Window
         _userRole = role;
 
         lblUser.Text = fullName + " (" + role + ")";
+
+        ConfigureTabsForRole(role);
         UpdateButtonStates();
+    }
+
+    private void ConfigureTabsForRole(string role)
+    {
+        // Hide Manager tab for Tellers
+        if (role != "Manager" && role != "Admin")
+        {
+            tabManager.Visibility = Visibility.Collapsed;
+        }
+
+        // Hide Admin tab for Tellers and Managers
+        if (role != "Admin")
+        {
+            tabAdmin.Visibility = Visibility.Collapsed;
+        }
     }
 
     private void Field_Changed(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -64,7 +81,6 @@ public partial class TellerDashboard : Window
                 lblBalance.Text = "R" + parts[4];
                 lblLookupMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
                 lblLookupMessage.Text = "Found";
-
                 LoadTransactions(accountNumber);
             }
             else
@@ -140,54 +156,32 @@ public partial class TellerDashboard : Window
 
     private void btnDeposit_Click(object sender, RoutedEventArgs e)
     {
-        string account = txtLookupAccount.Text.Trim();
-        string amount = txtAmount.Text.Trim();
-
         try
         {
-            string response = SendAndReceive("DEPOSIT|" + account + "|" + amount);
+            string response = SendAndReceive("DEPOSIT|" + txtLookupAccount.Text.Trim() + "|" + txtAmount.Text.Trim());
             HandleTransactionResponse(response);
         }
-        catch (Exception ex)
-        {
-            lblTransactionResult.Foreground = System.Windows.Media.Brushes.Red;
-            lblTransactionResult.Text = "Error: " + ex.Message;
-        }
+        catch (Exception ex) { lblTransactionResult.Text = "Error: " + ex.Message; }
     }
 
     private void btnWithdraw_Click(object sender, RoutedEventArgs e)
     {
-        string account = txtLookupAccount.Text.Trim();
-        string amount = txtAmount.Text.Trim();
-
         try
         {
-            string response = SendAndReceive("WITHDRAW|" + account + "|" + amount);
+            string response = SendAndReceive("WITHDRAW|" + txtLookupAccount.Text.Trim() + "|" + txtAmount.Text.Trim());
             HandleTransactionResponse(response);
         }
-        catch (Exception ex)
-        {
-            lblTransactionResult.Foreground = System.Windows.Media.Brushes.Red;
-            lblTransactionResult.Text = "Error: " + ex.Message;
-        }
+        catch (Exception ex) { lblTransactionResult.Text = "Error: " + ex.Message; }
     }
 
     private void btnTransfer_Click(object sender, RoutedEventArgs e)
     {
-        string from = txtLookupAccount.Text.Trim();
-        string to = txtDestination.Text.Trim();
-        string amount = txtAmount.Text.Trim();
-
         try
         {
-            string response = SendAndReceive("TRANSFER|" + from + "|" + to + "|" + amount);
+            string response = SendAndReceive("TRANSFER|" + txtLookupAccount.Text.Trim() + "|" + txtDestination.Text.Trim() + "|" + txtAmount.Text.Trim());
             HandleTransactionResponse(response);
         }
-        catch (Exception ex)
-        {
-            lblTransactionResult.Foreground = System.Windows.Media.Brushes.Red;
-            lblTransactionResult.Text = "Error: " + ex.Message;
-        }
+        catch (Exception ex) { lblTransactionResult.Text = "Error: " + ex.Message; }
     }
 
     private void HandleTransactionResponse(string response)
@@ -212,7 +206,6 @@ public partial class TellerDashboard : Window
                     lblAccountType.Text = lookupParts[3];
                     lblBalance.Text = "R" + lookupParts[4];
                 }
-
                 LoadTransactions(account);
             }
         }

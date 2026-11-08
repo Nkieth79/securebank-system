@@ -45,7 +45,7 @@ public partial class MainWindow : Window
                 string fullName = parts.Length > 2 ? parts[2] : "";
                 string role = parts.Length > 3 ? parts[3] : "";
 
-                TellerDashboard dashboard = new TellerDashboard(client, fullName, role);
+                Dashboard dashboard = new Dashboard(client, fullName, role);
                 dashboard.Show();
                 this.Close();
             }
