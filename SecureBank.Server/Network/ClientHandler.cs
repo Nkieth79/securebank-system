@@ -27,19 +27,13 @@ public class ClientHandler
         try
         {
             byte[] buffer = new byte[8192];
-
             while (true)
             {
                 int bytesRead = _stream.Read(buffer, 0, buffer.Length);
-
-                if (bytesRead == 0)
-                {
-                    break;
-                }
+                if (bytesRead == 0) break;
 
                 string message = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
                 Console.WriteLine("Received: " + message);
-
                 string response = ProcessMessage(message);
                 Send(response);
             }
@@ -60,92 +54,50 @@ public class ClientHandler
         string[] parts = MessageProtocol.Parse(message);
         string command = parts[0];
 
-        if (command == "PING")
-        {
-            return MessageProtocol.Build(MessageProtocol.ResponseOk, "PONG");
-        }
-
         if (command == "LOGIN")
         {
-            if (parts.Length < 3)
-            {
-                return MessageProtocol.Build(MessageProtocol.ResponseError, "Missing credentials");
-            }
-
+            if (parts.Length < 3) return MessageProtocol.Build(MessageProtocol.ResponseError, "Missing credentials");
             LoginResult result = _authService.Login(parts[1], parts[2]);
 
             if (result.Success)
             {
-                _loggedInUser = new User
-                {
-                    UserID = result.UserID,
-                    FullName = result.FullName,
-                    Role = result.Role
-                };
-
-                return MessageProtocol.Build(
-                    MessageProtocol.ResponseOk,
-                    result.UserID.ToString(),
-                    result.FullName,
-                    result.Role);
+                _loggedInUser = new User { UserID = result.UserID, FullName = result.FullName, Role = result.Role };
+                return MessageProtocol.Build(MessageProtocol.ResponseOk, result.UserID.ToString(), result.FullName, result.Role);
             }
-
             return MessageProtocol.Build(MessageProtocol.ResponseError, result.Message);
         }
 
         if (_loggedInUser == null)
-        {
             return MessageProtocol.Build(MessageProtocol.ResponseError, "Not logged in");
+
+        // Teller Commands
+        if (command == "LOOKUP") return _transactionService.LookupAccount(parts[1]);
+        if (command == "GETTRANSACTIONS") return _transactionService.GetTransactions(parts[1]);
+        if (command == "DEPOSIT") return _transactionService.Deposit(parts[1], decimal.Parse(parts[2]), _loggedInUser.UserID);
+        if (command == "WITHDRAW") return _transactionService.Withdraw(parts[1], decimal.Parse(parts[2]), _loggedInUser.UserID);
+        if (command == "TRANSFER") return _transactionService.Transfer(parts[1], parts[2], decimal.Parse(parts[3]), _loggedInUser.UserID);
+
+        if (command == "CREATELOAN")
+            return _transactionService.CreateLoan(int.Parse(parts[1]), decimal.Parse(parts[2]), decimal.Parse(parts[3]), int.Parse(parts[4]));
+
+        if (command == "PAYLOAN")
+            return _transactionService.PayLoan(int.Parse(parts[1]), decimal.Parse(parts[2]), _loggedInUser.UserID);
+
+        // Manager Commands (Security check included)
+        if (command == "GETLOANS")
+        {
+            if (_loggedInUser.Role != "Manager" && _loggedInUser.Role != "Admin")
+                return MessageProtocol.Build(MessageProtocol.ResponseError, "Access denied. Manager only.");
+
+            return _transactionService.GetPendingLoans();
         }
 
-        if (command == "DEPOSIT")
+        if (command == "APPROVELOAN")
         {
-            if (parts.Length < 3)
-            {
-                return MessageProtocol.Build(MessageProtocol.ResponseError, "Missing arguments");
-            }
+            if (_loggedInUser.Role != "Manager" && _loggedInUser.Role != "Admin")
+                return MessageProtocol.Build(MessageProtocol.ResponseError, "Access denied. Manager only.");
 
-            return _transactionService.Deposit(parts[1], decimal.Parse(parts[2]), _loggedInUser.UserID);
-        }
-
-        if (command == "WITHDRAW")
-        {
-            if (parts.Length < 3)
-            {
-                return MessageProtocol.Build(MessageProtocol.ResponseError, "Missing arguments");
-            }
-
-            return _transactionService.Withdraw(parts[1], decimal.Parse(parts[2]), _loggedInUser.UserID);
-        }
-
-        if (command == "TRANSFER")
-        {
-            if (parts.Length < 4)
-            {
-                return MessageProtocol.Build(MessageProtocol.ResponseError, "Missing arguments");
-            }
-
-            return _transactionService.Transfer(parts[1], parts[2], decimal.Parse(parts[3]), _loggedInUser.UserID);
-        }
-
-        if (command == "LOOKUP")
-        {
-            if (parts.Length < 2)
-            {
-                return MessageProtocol.Build(MessageProtocol.ResponseError, "Missing account number");
-            }
-
-            return _transactionService.LookupAccount(parts[1]);
-        }
-
-        if (command == "GETTRANSACTIONS")
-        {
-            if (parts.Length < 2)
-            {
-                return MessageProtocol.Build(MessageProtocol.ResponseError, "Missing account number");
-            }
-
-            return _transactionService.GetTransactions(parts[1]);
+            return _transactionService.ApproveLoan(int.Parse(parts[1]), _loggedInUser.UserID);
         }
 
         return MessageProtocol.Build(MessageProtocol.ResponseError, "Unknown command");

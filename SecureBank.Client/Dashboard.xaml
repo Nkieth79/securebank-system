@@ -27,12 +27,7 @@
         <!-- Header -->
         <Border Grid.Row="0" Background="#0D47A1">
             <Grid>
-                <TextBlock Text="SecureBank"
-                           FontSize="20"
-                           FontWeight="Bold"
-                           Foreground="White"
-                           VerticalAlignment="Center"
-                           Margin="20,0,0,0"/>
+                <TextBlock Text="SecureBank" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" Margin="20,0,0,0"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
                     <TextBlock x:Name="lblUser" Foreground="White" FontSize="14" VerticalAlignment="Center" Margin="0,0,15,0"/>
                     <Button Content="LOGOUT" Height="35" Width="100" Background="#D32F2F" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Click="btnLogout_Click"/>
@@ -43,7 +38,7 @@
         <!-- Tabs -->
         <TabControl Grid.Row="1" x:Name="mainTabs" Background="#1E1E1E" BorderThickness="0" Margin="10">
 
-            <!-- TELLER TAB (Existing Functionality) -->
+            <!-- TELLER TAB -->
             <TabItem Header="Teller" x:Name="tabTeller" Foreground="Black">
                 <Grid Margin="10">
                     <Grid.ColumnDefinitions>
@@ -52,37 +47,52 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Left: Lookup & Transactions -->
+                    <!-- Left: Actions -->
                     <Border Grid.Column="0" Background="#2D2D30" CornerRadius="5" Padding="15">
-                        <StackPanel>
-                            <TextBlock Text="ACCOUNT LOOKUP" FontSize="16" FontWeight="Bold" Foreground="#4FC3F7" Margin="0,0,0,15"/>
-                            <TextBlock Text="Account Number" Foreground="White" Margin="0,0,0,5"/>
-                            <TextBox x:Name="txtLookupAccount" Height="35" FontSize="14" Padding="5" Margin="0,0,0,10" TextChanged="Field_Changed"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="ACCOUNT LOOKUP" FontSize="16" FontWeight="Bold" Foreground="#4FC3F7" Margin="0,0,0,15"/>
+                                <TextBlock Text="Account Number" Foreground="White" Margin="0,0,0,5"/>
+                                <TextBox x:Name="txtLookupAccount" Height="35" FontSize="14" Padding="5" Margin="0,0,0,10" TextChanged="Field_Changed"/>
+                                <Button x:Name="btnLookup" Content="LOOKUP" Height="40" Background="#4FC3F7" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Margin="0,0,0,20" Click="btnLookup_Click"/>
 
-                            <Button x:Name="btnLookup" Content="LOOKUP" Height="40" Background="#4FC3F7" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Margin="0,0,0,20" Click="btnLookup_Click"/>
+                                <TextBlock Text="Customer" Foreground="Gray" FontSize="12"/>
+                                <TextBlock x:Name="lblCustomerName" Foreground="White" FontSize="14" Margin="0,0,0,15"/>
+                                <TextBlock Text="Account Type" Foreground="Gray" FontSize="12"/>
+                                <TextBlock x:Name="lblAccountType" Foreground="White" FontSize="14" Margin="0,0,0,15"/>
+                                <TextBlock Text="Balance" Foreground="Gray" FontSize="12"/>
+                                <TextBlock x:Name="lblBalance" Foreground="#4FC3F7" FontSize="24" FontWeight="Bold"/>
+                                <TextBlock x:Name="lblLookupMessage" Foreground="Red" TextWrapping="Wrap" Margin="0,15,0,0"/>
 
-                            <TextBlock Text="Customer" Foreground="Gray" FontSize="12"/>
-                            <TextBlock x:Name="lblCustomerName" Foreground="White" FontSize="14" Margin="0,0,0,15"/>
-                            <TextBlock Text="Account Type" Foreground="Gray" FontSize="12"/>
-                            <TextBlock x:Name="lblAccountType" Foreground="White" FontSize="14" Margin="0,0,0,15"/>
-                            <TextBlock Text="Balance" Foreground="Gray" FontSize="12"/>
-                            <TextBlock x:Name="lblBalance" Foreground="#4FC3F7" FontSize="24" FontWeight="Bold"/>
-                            <TextBlock x:Name="lblLookupMessage" Foreground="Red" TextWrapping="Wrap" Margin="0,15,0,0"/>
+                                <Border Background="#1E1E1E" Height="1" Margin="0,20,0,20"/>
 
-                            <Border Background="#1E1E1E" Height="1" Margin="0,20,0,20"/>
+                                <TextBlock Text="TRANSACTIONS" FontSize="16" FontWeight="Bold" Foreground="#4FC3F7" Margin="0,0,0,15"/>
+                                <TextBlock Text="Amount (R)" Foreground="White" Margin="0,0,0,5"/>
+                                <TextBox x:Name="txtAmount" Height="35" FontSize="14" Padding="5" Margin="0,0,0,10" TextChanged="Field_Changed"/>
+                                <TextBlock Text="Destination (transfer only)" Foreground="Gray" FontSize="12" Margin="0,0,0,5"/>
+                                <TextBox x:Name="txtDestination" Height="35" FontSize="14" Padding="5" Margin="0,0,0,15" TextChanged="Field_Changed"/>
 
-                            <TextBlock Text="TRANSACTIONS" FontSize="16" FontWeight="Bold" Foreground="#4FC3F7" Margin="0,0,0,15"/>
-                            <TextBlock Text="Amount (R)" Foreground="White" Margin="0,0,0,5"/>
-                            <TextBox x:Name="txtAmount" Height="35" FontSize="14" Padding="5" Margin="0,0,0,10" TextChanged="Field_Changed"/>
-                            <TextBlock Text="Destination (transfer only)" Foreground="Gray" FontSize="12" Margin="0,0,0,5"/>
-                            <TextBox x:Name="txtDestination" Height="35" FontSize="14" Padding="5" Margin="0,0,0,15" TextChanged="Field_Changed"/>
+                                <Button x:Name="btnDeposit" Content="DEPOSIT" Height="35" Background="#4CAF50" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,0,8" Cursor="Hand" Click="btnDeposit_Click"/>
+                                <Button x:Name="btnWithdraw" Content="WITHDRAW" Height="35" Background="#FF9800" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,0,8" Cursor="Hand" Click="btnWithdraw_Click"/>
+                                <Button x:Name="btnTransfer" Content="TRANSFER" Height="35" Background="#2196F3" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Click="btnTransfer_Click"/>
+                                <TextBlock x:Name="lblTransactionResult" Foreground="LightGreen" TextWrapping="Wrap" Margin="0,15,0,0"/>
 
-                            <Button x:Name="btnDeposit" Content="DEPOSIT" Height="35" Background="#4CAF50" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,0,8" Cursor="Hand" Click="btnDeposit_Click"/>
-                            <Button x:Name="btnWithdraw" Content="WITHDRAW" Height="35" Background="#FF9800" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,0,8" Cursor="Hand" Click="btnWithdraw_Click"/>
-                            <Button x:Name="btnTransfer" Content="TRANSFER" Height="35" Background="#2196F3" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Click="btnTransfer_Click"/>
+                                <Border Background="#1E1E1E" Height="1" Margin="0,20,0,20"/>
 
-                            <TextBlock x:Name="lblTransactionResult" Foreground="LightGreen" TextWrapping="Wrap" Margin="0,15,0,0"/>
-                        </StackPanel>
+                                <TextBlock Text="APPLY FOR LOAN" FontSize="16" FontWeight="Bold" Foreground="#4FC3F7" Margin="0,0,0,15"/>
+                                <TextBlock Text="Customer ID" Foreground="White" Margin="0,0,0,5"/>
+                                <TextBox x:Name="txtLoanCustId" Height="35" FontSize="14" Padding="5" Margin="0,0,0,10"/>
+                                <TextBlock Text="Amount (R)" Foreground="White" Margin="0,0,0,5"/>
+                                <TextBox x:Name="txtLoanAmount" Height="35" FontSize="14" Padding="5" Margin="0,0,0,10"/>
+                                <TextBlock Text="Interest Rate (e.g. 0.10 for 10%)" Foreground="White" Margin="0,0,0,5"/>
+                                <TextBox x:Name="txtLoanRate" Height="35" FontSize="14" Padding="5" Margin="0,0,0,10"/>
+                                <TextBlock Text="Term (Months)" Foreground="White" Margin="0,0,0,5"/>
+                                <TextBox x:Name="txtLoanTerm" Height="35" FontSize="14" Padding="5" Margin="0,0,0,15"/>
+                                <Button x:Name="btnApplyLoan" Content="APPLY" Height="35" Background="#9C27B0" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Click="btnApplyLoan_Click"/>
+                                <TextBlock x:Name="lblLoanMessage" Foreground="LightGreen" TextWrapping="Wrap" Margin="0,15,0,0"/>
+
+                            </StackPanel>
+                        </ScrollViewer>
                     </Border>
 
                     <!-- Right: Grid -->
@@ -109,14 +119,36 @@
                 </Grid>
             </TabItem>
 
-            <!-- MANAGER TAB (Placeholder) -->
+            <!-- MANAGER TAB -->
             <TabItem Header="Manager" x:Name="tabManager" Foreground="Black">
                 <Grid Margin="20">
-                    <TextBlock Text="Manager Dashboard" FontSize="24" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="PENDING LOAN APPLICATIONS" FontSize="20" FontWeight="Bold" Foreground="#4FC3F7" Margin="0,0,0,15"/>
+
+                    <DataGrid Grid.Row="1" x:Name="dgPendingLoans" Background="#252526" Foreground="White" RowBackground="#2D2D30" AlternatingRowBackground="#333337" GridLinesVisibility="None" HeadersVisibility="Column" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Loan ID" Binding="{Binding LoanId}" Width="80"/>
+                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="200"/>
+                            <DataGridTextColumn Header="Amount (R)" Binding="{Binding Amount}" Width="120"/>
+                            <DataGridTextColumn Header="Interest" Binding="{Binding Rate}" Width="100"/>
+                            <DataGridTextColumn Header="Term" Binding="{Binding Term}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,15,0,0">
+                        <Button Content="REFRESH" Width="120" Height="40" Background="#2196F3" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Margin="0,0,15,0" Click="btnRefreshLoans_Click"/>
+                        <Button Content="APPROVE SELECTED" Width="180" Height="40" Background="#4CAF50" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Click="btnApproveLoan_Click"/>
+                        <TextBlock x:Name="lblManagerMessage" Foreground="LightGreen" VerticalAlignment="Center" Margin="20,0,0,0"/>
+                    </StackPanel>
                 </Grid>
             </TabItem>
 
-            <!-- ADMIN TAB (Placeholder) -->
+            <!-- ADMIN TAB -->
             <TabItem Header="Admin" x:Name="tabAdmin" Foreground="Black">
                 <Grid Margin="20">
                     <TextBlock Text="Admin Dashboard" FontSize="24" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
