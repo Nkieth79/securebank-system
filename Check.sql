@@ -1,7 +1,14 @@
 ﻿USE SecureBank;
-ALTER TABLE Users ALTER COLUMN PasswordHash NVARCHAR(200) NOT NULL;
-DELETE FROM AuditLog;
-DELETE FROM LoanPayments;
-DELETE FROM Loans;
-DELETE FROM Transactions;
-DELETE FROM Users;
+GO
+
+-- 1. Check Users
+SELECT UserID, Username, FullName, Role, IsActive FROM Users;
+
+-- 2. Check the 10 Customers
+SELECT CustomerID, FirstName, LastName, IDNumber, KYCStatus FROM Customers;
+
+-- 3. Check Accounts
+SELECT AccountID, AccountNumber, CustomerID, Type, Balance, Status FROM Accounts;
+
+-- 4. Check Pending Loans
+SELECT LoanID, CustomerID, PrincipalAmount, Status FROM Loans;

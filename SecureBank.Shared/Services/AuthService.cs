@@ -24,6 +24,10 @@ public class AuthService
 
         string hashedPassword = HashPassword(password);
 
+        // DEBUG LINES
+        Console.WriteLine("DEBUG: User typed: " + password);
+        Console.WriteLine("DEBUG: Server generated hash: " + hashedPassword);
+
         using (SqlConnection conn = new SqlConnection(_connectionString))
         {
             conn.Open();
@@ -36,6 +40,7 @@ public class AuthService
             {
                 if (!reader.Read())
                 {
+                    Console.WriteLine("DEBUG: User not found in database.");
                     return result;
                 }
 
@@ -50,6 +55,7 @@ public class AuthService
 
                 if (storedHash != hashedPassword)
                 {
+                    Console.WriteLine("DEBUG: Database has hash: " + storedHash);
                     return result;
                 }
 

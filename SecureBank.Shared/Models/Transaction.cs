@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-namespace SecureBank.Shared.Models;
+﻿namespace SecureBank.Shared.Models;
 
 public class Transaction
 {

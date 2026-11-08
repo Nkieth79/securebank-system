@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System.IO;
+using System.Net.Sockets;
 using System.Text;
 using System.Windows;
 
@@ -53,6 +54,103 @@ public partial class Dashboard : Window
         btnDeposit.IsEnabled = hasAccount && hasAmount;
         btnWithdraw.IsEnabled = hasAccount && hasAmount;
         btnTransfer.IsEnabled = hasAccount && hasAmount && hasDestination;
+    }
+
+    // ==========================================
+    // CUSTOMER CREATION & ACCOUNTS
+    // ==========================================
+
+    private void btnCreateCustomer_Click(object sender, RoutedEventArgs e)
+    {
+        lblCustomerMessage.Text = "";
+
+        if (string.IsNullOrWhiteSpace(txtCustFirst.Text) || string.IsNullOrWhiteSpace(txtCustLast.Text) || string.IsNullOrWhiteSpace(txtCustId.Text))
+        {
+            lblCustomerMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblCustomerMessage.Text = "First Name, Last Name, and ID Number are required.";
+            return;
+        }
+
+        try
+        {
+            string first = txtCustFirst.Text.Trim().Replace("|", " ");
+            string last = txtCustLast.Text.Trim().Replace("|", " ");
+            string id = txtCustId.Text.Trim().Replace("|", " ");
+            string email = string.IsNullOrWhiteSpace(txtCustEmail.Text) ? "None" : txtCustEmail.Text.Trim().Replace("|", " ");
+            string phone = string.IsNullOrWhiteSpace(txtCustPhone.Text) ? "None" : txtCustPhone.Text.Trim().Replace("|", " ");
+            string address = string.IsNullOrWhiteSpace(txtCustAddress.Text) ? "None" : txtCustAddress.Text.Trim().Replace("|", " ");
+
+            string response = SendAndReceive($"CREATECUSTOMER|{first}|{last}|{id}|{email}|{phone}|{address}");
+
+            if (response.StartsWith("OK"))
+            {
+                lblCustomerMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
+                lblCustomerMessage.Text = response.Substring(3);
+                txtCustFirst.Clear();
+                txtCustLast.Clear();
+                txtCustId.Clear();
+                txtCustEmail.Clear();
+                txtCustPhone.Clear();
+                txtCustAddress.Clear();
+            }
+            else
+            {
+                lblCustomerMessage.Foreground = System.Windows.Media.Brushes.Red;
+                lblCustomerMessage.Text = response;
+            }
+        }
+        catch (Exception ex)
+        {
+            lblCustomerMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblCustomerMessage.Text = "Error: " + ex.Message;
+        }
+    }
+
+    private void btnOpenAccount_Click(object sender, RoutedEventArgs e)
+    {
+        lblOpenAccMessage.Text = "";
+
+        if (!int.TryParse(txtOpenAccCustId.Text.Trim(), out int custId) || cboOpenAccType.SelectedItem == null)
+        {
+            lblOpenAccMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblOpenAccMessage.Text = "Please enter a valid Customer ID and select an Account Type.";
+            return;
+        }
+
+        try
+        {
+            string type = (cboOpenAccType.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Content.ToString() ?? "Savings";
+            decimal deposit = 0;
+            if (!string.IsNullOrWhiteSpace(txtOpenAccDeposit.Text))
+            {
+                if (!decimal.TryParse(txtOpenAccDeposit.Text.Trim(), out deposit))
+                {
+                    lblOpenAccMessage.Foreground = System.Windows.Media.Brushes.Red;
+                    lblOpenAccMessage.Text = "Invalid deposit amount.";
+                    return;
+                }
+            }
+
+            string response = SendAndReceive($"OPENACCOUNT|{custId}|{type}|{deposit}");
+
+            if (response.StartsWith("OK"))
+            {
+                lblOpenAccMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
+                lblOpenAccMessage.Text = response.Substring(3);
+                txtOpenAccCustId.Clear();
+                txtOpenAccDeposit.Clear();
+            }
+            else
+            {
+                lblOpenAccMessage.Foreground = System.Windows.Media.Brushes.Red;
+                lblOpenAccMessage.Text = response;
+            }
+        }
+        catch (Exception ex)
+        {
+            lblOpenAccMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblOpenAccMessage.Text = "Error: " + ex.Message;
+        }
     }
 
     // ==========================================
@@ -158,9 +256,17 @@ public partial class Dashboard : Window
 
     private void btnDeposit_Click(object sender, RoutedEventArgs e)
     {
+        lblTransactionResult.Text = "";
+        if (!decimal.TryParse(txtAmount.Text.Trim(), out decimal amount) || amount <= 0)
+        {
+            lblTransactionResult.Foreground = System.Windows.Media.Brushes.Red;
+            lblTransactionResult.Text = "Please enter a valid positive amount.";
+            return;
+        }
+
         try
         {
-            string response = SendAndReceive("DEPOSIT|" + txtLookupAccount.Text.Trim() + "|" + txtAmount.Text.Trim());
+            string response = SendAndReceive("DEPOSIT|" + txtLookupAccount.Text.Trim() + "|" + amount.ToString("F2"));
             HandleTransactionResponse(response);
         }
         catch (Exception ex) { lblTransactionResult.Text = "Error: " + ex.Message; }
@@ -168,9 +274,17 @@ public partial class Dashboard : Window
 
     private void btnWithdraw_Click(object sender, RoutedEventArgs e)
     {
+        lblTransactionResult.Text = "";
+        if (!decimal.TryParse(txtAmount.Text.Trim(), out decimal amount) || amount <= 0)
+        {
+            lblTransactionResult.Foreground = System.Windows.Media.Brushes.Red;
+            lblTransactionResult.Text = "Please enter a valid positive amount.";
+            return;
+        }
+
         try
         {
-            string response = SendAndReceive("WITHDRAW|" + txtLookupAccount.Text.Trim() + "|" + txtAmount.Text.Trim());
+            string response = SendAndReceive("WITHDRAW|" + txtLookupAccount.Text.Trim() + "|" + amount.ToString("F2"));
             HandleTransactionResponse(response);
         }
         catch (Exception ex) { lblTransactionResult.Text = "Error: " + ex.Message; }
@@ -178,9 +292,17 @@ public partial class Dashboard : Window
 
     private void btnTransfer_Click(object sender, RoutedEventArgs e)
     {
+        lblTransactionResult.Text = "";
+        if (!decimal.TryParse(txtAmount.Text.Trim(), out decimal amount) || amount <= 0)
+        {
+            lblTransactionResult.Foreground = System.Windows.Media.Brushes.Red;
+            lblTransactionResult.Text = "Please enter a valid positive amount.";
+            return;
+        }
+
         try
         {
-            string response = SendAndReceive("TRANSFER|" + txtLookupAccount.Text.Trim() + "|" + txtDestination.Text.Trim() + "|" + txtAmount.Text.Trim());
+            string response = SendAndReceive("TRANSFER|" + txtLookupAccount.Text.Trim() + "|" + txtDestination.Text.Trim() + "|" + amount.ToString("F2"));
             HandleTransactionResponse(response);
         }
         catch (Exception ex) { lblTransactionResult.Text = "Error: " + ex.Message; }
@@ -222,23 +344,25 @@ public partial class Dashboard : Window
     {
         lblLoanMessage.Text = "";
 
-        if (string.IsNullOrWhiteSpace(txtLoanCustId.Text) || string.IsNullOrWhiteSpace(txtLoanAmount.Text) ||
-            string.IsNullOrWhiteSpace(txtLoanRate.Text) || string.IsNullOrWhiteSpace(txtLoanTerm.Text))
+        if (!int.TryParse(txtLoanCustId.Text.Trim(), out int custId) ||
+            !decimal.TryParse(txtLoanAmount.Text.Trim(), out decimal amount) ||
+            !decimal.TryParse(txtLoanRate.Text.Trim(), out decimal rate) ||
+            !int.TryParse(txtLoanTerm.Text.Trim(), out int term))
         {
             lblLoanMessage.Foreground = System.Windows.Media.Brushes.Red;
-            lblLoanMessage.Text = "Please fill in all loan fields.";
+            lblLoanMessage.Text = "Please enter valid numbers for all fields.";
             return;
         }
 
         try
         {
-            string cmd = $"CREATELOAN|{txtLoanCustId.Text.Trim()}|{txtLoanAmount.Text.Trim()}|{txtLoanRate.Text.Trim()}|{txtLoanTerm.Text.Trim()}";
+            string cmd = $"CREATELOAN|{custId}|{amount}|{rate}|{term}";
             string response = SendAndReceive(cmd);
 
             if (response.StartsWith("OK"))
             {
                 lblLoanMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
-                lblLoanMessage.Text = response.Substring(3); // Remove "OK|"
+                lblLoanMessage.Text = response.Substring(3);
                 txtLoanCustId.Clear();
                 txtLoanAmount.Clear();
                 txtLoanRate.Clear();
@@ -282,6 +406,7 @@ public partial class Dashboard : Window
                 dgPendingLoans.ItemsSource = null;
                 lblManagerMessage.Foreground = System.Windows.Media.Brushes.Gray;
                 lblManagerMessage.Text = "No pending loans.";
+                LoadActiveLoans();
                 return;
             }
 
@@ -307,6 +432,8 @@ public partial class Dashboard : Window
             dgPendingLoans.ItemsSource = list;
             lblManagerMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
             lblManagerMessage.Text = list.Count + " pending loans loaded.";
+
+            LoadActiveLoans();
         }
         catch (Exception ex)
         {
@@ -332,7 +459,8 @@ public partial class Dashboard : Window
             {
                 lblManagerMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
                 lblManagerMessage.Text = response.Substring(3);
-                btnRefreshLoans_Click(sender, e); // Refresh the grid
+                btnRefreshLoans_Click(sender, e);
+                LoadActiveLoans();
             }
             else
             {
@@ -347,6 +475,243 @@ public partial class Dashboard : Window
         }
     }
 
+    private void btnRejectLoan_Click(object sender, RoutedEventArgs e)
+    {
+        if (dgPendingLoans.SelectedItem is not PendingLoanRow selectedLoan)
+        {
+            lblManagerMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblManagerMessage.Text = "Please select a loan to reject.";
+            return;
+        }
+
+        try
+        {
+            string response = SendAndReceive("REJECTLOAN|" + selectedLoan.LoanId);
+
+            if (response.StartsWith("OK"))
+            {
+                lblManagerMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
+                lblManagerMessage.Text = response.Substring(3);
+                btnRefreshLoans_Click(sender, e);
+            }
+            else
+            {
+                lblManagerMessage.Foreground = System.Windows.Media.Brushes.Red;
+                lblManagerMessage.Text = response;
+            }
+        }
+        catch (Exception ex)
+        {
+            lblManagerMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblManagerMessage.Text = "Error: " + ex.Message;
+        }
+    }
+
+    private void LoadActiveLoans()
+    {
+        try
+        {
+            string response = SendAndReceive("GETACTIVELOANS");
+
+            if (!response.StartsWith("OK"))
+            {
+                lblManagerMessage.Foreground = System.Windows.Media.Brushes.Red;
+                lblManagerMessage.Text = "Active Loans Error: " + response;
+                return;
+            }
+
+            string data = response.Substring(3);
+            if (data == "EMPTY")
+            {
+                dgActiveLoans.ItemsSource = null;
+                return;
+            }
+
+            string[] rows = data.Split(new string[] { "~~" }, StringSplitOptions.None);
+            var list = new List<ActiveLoanRow>();
+
+            foreach (string row in rows)
+            {
+                string[] fields = row.Split('~');
+                if (fields.Length >= 4)
+                {
+                    list.Add(new ActiveLoanRow
+                    {
+                        LoanId = fields[0],
+                        CustomerName = fields[1],
+                        Amount = "R" + fields[2],
+                        RemainingBalance = "R" + fields[3]
+                    });
+                }
+            }
+
+            dgActiveLoans.ItemsSource = list;
+        }
+        catch (Exception ex)
+        {
+            lblManagerMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblManagerMessage.Text = "Active Loans Error: " + ex.Message;
+        }
+    }
+
+    private void btnCloseAccount_Click(object sender, RoutedEventArgs e)
+    {
+        lblCloseAccountMessage.Text = "";
+        if (string.IsNullOrWhiteSpace(txtCloseAccountNumber.Text)) return;
+
+        try
+        {
+            string response = SendAndReceive("CLOSEACCOUNT|" + txtCloseAccountNumber.Text.Trim());
+
+            if (response.StartsWith("OK"))
+            {
+                lblCloseAccountMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
+                lblCloseAccountMessage.Text = response.Substring(3);
+                txtCloseAccountNumber.Clear();
+            }
+            else
+            {
+                lblCloseAccountMessage.Foreground = System.Windows.Media.Brushes.Red;
+                lblCloseAccountMessage.Text = response.Substring(6);
+            }
+        }
+        catch (Exception ex)
+        {
+            lblCloseAccountMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblCloseAccountMessage.Text = "Error: " + ex.Message;
+        }
+    }
+
+    // ==========================================
+    // ADMIN TAB LOGIC
+    // ==========================================
+
+    private void btnRefreshAuditLog_Click(object sender, RoutedEventArgs e)
+    {
+        lblAdminMessage.Text = "";
+        try
+        {
+            string response = SendAndReceive("GETAUDITLOG");
+
+            if (!response.StartsWith("OK"))
+            {
+                lblAdminMessage.Foreground = System.Windows.Media.Brushes.Red;
+                lblAdminMessage.Text = response;
+                dgAuditLog.ItemsSource = null;
+                return;
+            }
+
+            string data = response.Substring(3);
+            if (data == "EMPTY")
+            {
+                dgAuditLog.ItemsSource = null;
+                lblAdminMessage.Foreground = System.Windows.Media.Brushes.Gray;
+                lblAdminMessage.Text = "No audit logs found.";
+                return;
+            }
+
+            string[] rows = data.Split(new string[] { "~~" }, StringSplitOptions.None);
+            var list = new List<AuditLogRow>();
+
+            foreach (string row in rows)
+            {
+                string[] fields = row.Split('~');
+                if (fields.Length >= 4)
+                {
+                    list.Add(new AuditLogRow
+                    {
+                        User = fields[0],
+                        Action = fields[1],
+                        Details = fields[2],
+                        Timestamp = fields[3]
+                    });
+                }
+            }
+
+            dgAuditLog.ItemsSource = list;
+            lblAdminMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
+            lblAdminMessage.Text = list.Count + " log entries loaded.";
+        }
+        catch (Exception ex)
+        {
+            lblAdminMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblAdminMessage.Text = "Error: " + ex.Message;
+        }
+    }
+
+    private void btnToggleUser_Click(object sender, RoutedEventArgs e)
+    {
+        lblManageUserMessage.Text = "";
+        if (string.IsNullOrWhiteSpace(txtManageUsername.Text)) return;
+
+        try
+        {
+            string response = SendAndReceive("TOGGLEUSER|" + txtManageUsername.Text.Trim());
+
+            if (response.StartsWith("OK"))
+            {
+                lblManageUserMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
+                lblManageUserMessage.Text = response.Substring(3);
+                txtManageUsername.Clear();
+                btnRefreshAuditLog_Click(sender, e);
+            }
+            else
+            {
+                lblManageUserMessage.Foreground = System.Windows.Media.Brushes.Red;
+                lblManageUserMessage.Text = response.Substring(6);
+            }
+        }
+        catch (Exception ex)
+        {
+            lblManageUserMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblManageUserMessage.Text = "Error: " + ex.Message;
+        }
+    }
+
+    private void btnExportCsv_Click(object sender, RoutedEventArgs e)
+    {
+        if (dgAuditLog.ItemsSource == null || dgAuditLog.Items.Count == 0)
+        {
+            lblAdminMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblAdminMessage.Text = "No data to export. Refresh the log first.";
+            return;
+        }
+
+        try
+        {
+            Microsoft.Win32.SaveFileDialog saveDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "CSV File (*.csv)|*.csv",
+                FileName = "AuditLog_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".csv"
+            };
+
+            if (saveDialog.ShowDialog() == true)
+            {
+                using (StreamWriter writer = new StreamWriter(saveDialog.FileName))
+                {
+                    writer.WriteLine("User,Action,Details,Timestamp");
+
+                    var items = dgAuditLog.ItemsSource as List<AuditLogRow>;
+                    if (items != null)
+                    {
+                        foreach (var row in items)
+                        {
+                            writer.WriteLine($"{row.User},\"{row.Action}\",\"{row.Details}\",{row.Timestamp}");
+                        }
+                    }
+                }
+
+                lblAdminMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
+                lblAdminMessage.Text = "Audit log exported successfully.";
+            }
+        }
+        catch (Exception ex)
+        {
+            lblAdminMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblAdminMessage.Text = "Error exporting: " + ex.Message;
+        }
+    }
+
     // ==========================================
     // SHARED
     // ==========================================
@@ -355,7 +720,10 @@ public partial class Dashboard : Window
     {
         _stream?.Close();
         _client?.Close();
-        Application.Current.Shutdown();
+
+        MainWindow login = new MainWindow();
+        login.Show();
+        this.Close();
     }
 
     private string SendAndReceive(string message)
@@ -386,4 +754,20 @@ public class PendingLoanRow
     public string Amount { get; set; } = "";
     public string Rate { get; set; } = "";
     public string Term { get; set; } = "";
+}
+
+public class ActiveLoanRow
+{
+    public string LoanId { get; set; } = "";
+    public string CustomerName { get; set; } = "";
+    public string Amount { get; set; } = "";
+    public string RemainingBalance { get; set; } = "";
+}
+
+public class AuditLogRow
+{
+    public string User { get; set; } = "";
+    public string Action { get; set; } = "";
+    public string Details { get; set; } = "";
+    public string Timestamp { get; set; } = "";
 }
