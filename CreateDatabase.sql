@@ -12,7 +12,7 @@ BEGIN
     CREATE TABLE Users (
         UserID INT IDENTITY(1,1) PRIMARY KEY,
         Username NVARCHAR(50) NOT NULL UNIQUE,
-        PasswordHash NVARCHAR(100) NOT NULL,
+        PasswordHash NVARCHAR(200) NOT NULL,
         FullName NVARCHAR(100) NOT NULL,
         Role NVARCHAR(20) NOT NULL,
         IsActive BIT NOT NULL DEFAULT 1
@@ -118,29 +118,27 @@ BEGIN
 END
 GO
 
+-- ==========================================
+-- INSERT DEFAULT USERS (WITH SHA-256 HASHES)
+-- ==========================================
+
+-- Password for admin: admin123
 INSERT INTO Users (Username, PasswordHash, FullName, Role, IsActive)
-SELECT 'admin', 'admin123', 'System Administrator', 'Admin', 1
+SELECT 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'System Administrator', 'Admin', 1
 WHERE NOT EXISTS (SELECT 1 FROM Users WHERE Username = 'admin');
 GO
 
+-- Password for teller1: teller123
 INSERT INTO Users (Username, PasswordHash, FullName, Role, IsActive)
-SELECT 'teller1', 'teller123', 'Default Teller', 'Teller', 1
+SELECT 'teller1', '8c690ca2a3d255f2728a0103d817d8fb6a4b04e33e83a5996a5e9d78997c0be0', 'Default Teller', 'Teller', 1
 WHERE NOT EXISTS (SELECT 1 FROM Users WHERE Username = 'teller1');
 GO
 
+-- Password for manager1: manager123
 INSERT INTO Users (Username, PasswordHash, FullName, Role, IsActive)
-SELECT 'manager1', 'manager123', 'Default Manager', 'Manager', 1
+SELECT 'manager1', 'b26f6dcf2a6ed0ff5f85ee7a1a21e4bb56cc15ee06c94d2f478ea67b80ec9e2b', 'Default Manager', 'Manager', 1
 WHERE NOT EXISTS (SELECT 1 FROM Users WHERE Username = 'manager1');
 GO
 
-PRINT 'SecureBank database created successfully.';
+PRINT 'SecureBank database created successfully with hashed passwords.';
 GO
-INSERT INTO Customers (FirstName, LastName, IDNumber, Email, Phone, Address, KYCStatus)
-SELECT 'John', 'Smith', '9001015009087', 'john@test.com', '0821234567', '1 Main St', 'Verified'
-WHERE NOT EXISTS (SELECT 1 FROM Customers WHERE IDNumber = '9001015009087');
-
-INSERT INTO Accounts (AccountNumber, CustomerID, Type, Balance, Status)
-SELECT 'SB-000001', 1, 'Savings', 1000.00, 'Active'
-WHERE NOT EXISTS (SELECT 1 FROM Accounts WHERE AccountNumber = 'SB-000001');
-
-PRINT 'Test customer and account created.';

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Security.Cryptography;
 using System.Text;
-
 using Microsoft.Data.SqlClient;
 using SecureBank.Shared.Models;
 
@@ -24,6 +22,8 @@ public class AuthService
             Message = "Invalid credentials"
         };
 
+        string hashedPassword = HashPassword(password);
+
         using (SqlConnection conn = new SqlConnection(_connectionString))
         {
             conn.Open();
@@ -39,7 +39,7 @@ public class AuthService
                     return result;
                 }
 
-                string storedPassword = reader["PasswordHash"].ToString() ?? "";
+                string storedHash = reader["PasswordHash"].ToString() ?? "";
                 bool isActive = Convert.ToBoolean(reader["IsActive"]);
 
                 if (!isActive)
@@ -48,7 +48,7 @@ public class AuthService
                     return result;
                 }
 
-                if (storedPassword != password)
+                if (storedHash != hashedPassword)
                 {
                     return result;
                 }
@@ -62,5 +62,20 @@ public class AuthService
         }
 
         return result;
+    }
+
+    public string HashPassword(string password)
+    {
+        using (SHA256 sha256 = SHA256.Create())
+        {
+            byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString();
+        }
     }
 }

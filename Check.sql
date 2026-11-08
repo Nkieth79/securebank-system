@@ -1,2 +1,7 @@
 ﻿USE SecureBank;
-SELECT LoanID, CustomerID, PrincipalAmount, Status, ApprovedBy FROM Loans;
+ALTER TABLE Users ALTER COLUMN PasswordHash NVARCHAR(200) NOT NULL;
+DELETE FROM AuditLog;
+DELETE FROM LoanPayments;
+DELETE FROM Loans;
+DELETE FROM Transactions;
+DELETE FROM Users;
