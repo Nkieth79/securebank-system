@@ -20,12 +20,30 @@ public partial class TellerDashboard : Window
         _userRole = role;
 
         lblUser.Text = fullName + " (" + role + ")";
+        UpdateButtonStates();
+    }
+
+    private void Field_Changed(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+        UpdateButtonStates();
+    }
+
+    private void UpdateButtonStates()
+    {
+        bool hasAccount = !string.IsNullOrWhiteSpace(txtLookupAccount.Text);
+        bool hasAmount = !string.IsNullOrWhiteSpace(txtAmount.Text);
+        bool hasDestination = !string.IsNullOrWhiteSpace(txtDestination.Text);
+
+        btnLookup.IsEnabled = hasAccount;
+        btnDeposit.IsEnabled = hasAccount && hasAmount;
+        btnWithdraw.IsEnabled = hasAccount && hasAmount;
+        btnTransfer.IsEnabled = hasAccount && hasAmount && hasDestination;
     }
 
     private void btnLookup_Click(object sender, RoutedEventArgs e)
     {
         lblLookupMessage.Text = "";
-        lblTransactionMessage.Text = "";
+        lblTransactionResult.Text = "";
 
         string accountNumber = txtLookupAccount.Text.Trim();
         if (string.IsNullOrEmpty(accountNumber))
@@ -60,6 +78,89 @@ public partial class TellerDashboard : Window
         {
             lblLookupMessage.Foreground = System.Windows.Media.Brushes.Red;
             lblLookupMessage.Text = "Error: " + ex.Message;
+        }
+    }
+
+    private void btnDeposit_Click(object sender, RoutedEventArgs e)
+    {
+        string account = txtLookupAccount.Text.Trim();
+        string amount = txtAmount.Text.Trim();
+
+        try
+        {
+            string response = SendAndReceive("DEPOSIT|" + account + "|" + amount);
+            HandleTransactionResponse(response);
+        }
+        catch (Exception ex)
+        {
+            lblTransactionResult.Foreground = System.Windows.Media.Brushes.Red;
+            lblTransactionResult.Text = "Error: " + ex.Message;
+        }
+    }
+
+    private void btnWithdraw_Click(object sender, RoutedEventArgs e)
+    {
+        string account = txtLookupAccount.Text.Trim();
+        string amount = txtAmount.Text.Trim();
+
+        try
+        {
+            string response = SendAndReceive("WITHDRAW|" + account + "|" + amount);
+            HandleTransactionResponse(response);
+        }
+        catch (Exception ex)
+        {
+            lblTransactionResult.Foreground = System.Windows.Media.Brushes.Red;
+            lblTransactionResult.Text = "Error: " + ex.Message;
+        }
+    }
+
+    private void btnTransfer_Click(object sender, RoutedEventArgs e)
+    {
+        string from = txtLookupAccount.Text.Trim();
+        string to = txtDestination.Text.Trim();
+        string amount = txtAmount.Text.Trim();
+
+        try
+        {
+            string response = SendAndReceive("TRANSFER|" + from + "|" + to + "|" + amount);
+            HandleTransactionResponse(response);
+        }
+        catch (Exception ex)
+        {
+            lblTransactionResult.Foreground = System.Windows.Media.Brushes.Red;
+            lblTransactionResult.Text = "Error: " + ex.Message;
+        }
+    }
+
+    private void HandleTransactionResponse(string response)
+    {
+        if (response.StartsWith("OK"))
+        {
+            string[] parts = response.Split('|');
+            string newBalance = parts.Length > 1 ? parts[1] : "";
+            lblTransactionResult.Foreground = System.Windows.Media.Brushes.LightGreen;
+            lblTransactionResult.Text = "Success. New balance: R" + newBalance;
+            txtAmount.Clear();
+            txtDestination.Clear();
+
+            string account = txtLookupAccount.Text.Trim();
+            if (!string.IsNullOrEmpty(account))
+            {
+                string lookupResponse = SendAndReceive("LOOKUP|" + account);
+                if (lookupResponse.StartsWith("OK"))
+                {
+                    string[] lookupParts = lookupResponse.Split('|');
+                    lblCustomerName.Text = lookupParts[1] + " " + lookupParts[2];
+                    lblAccountType.Text = lookupParts[3];
+                    lblBalance.Text = "R" + lookupParts[4];
+                }
+            }
+        }
+        else
+        {
+            lblTransactionResult.Foreground = System.Windows.Media.Brushes.Red;
+            lblTransactionResult.Text = response;
         }
     }
 

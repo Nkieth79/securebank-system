@@ -218,8 +218,8 @@ public class TransactionService
                 cmd.Parameters.AddWithValue("@by", performedBy);
                 cmd.ExecuteNonQuery();
             }
-
-            return "OK|Transferred " + amount.ToString("F2");
+            return "OK|" + newFromBalance.ToString("F2");
+            //return "OK|Transferred " + amount.ToString("F2");
         }
     }
 

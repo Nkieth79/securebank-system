@@ -1,3 +1,7 @@
 ﻿USE SecureBank;
-SELECT AccountNumber, Balance FROM Accounts;
-SELECT TOP 10 TransactionID, AccountID, Type, Amount, BalanceAfter, Date FROM Transactions ORDER BY TransactionID DESC;
+IF NOT EXISTS (SELECT 1 FROM Accounts WHERE AccountNumber = 'SB-000002')
+BEGIN
+    INSERT INTO Accounts (AccountNumber, CustomerID, Type, Balance, Status)
+    VALUES ('SB-000002', 1, 'Cheque', 500.00, 'Active');
+    PRINT 'Second account created.';
+END

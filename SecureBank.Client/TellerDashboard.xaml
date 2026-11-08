@@ -13,7 +13,6 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
         <Border Grid.Row="0" Background="#0D47A1">
             <Grid>
                 <TextBlock Text="SecureBank - Teller"
@@ -45,7 +44,6 @@
             </Grid>
         </Border>
 
-        <!-- Body -->
         <Grid Grid.Row="1" Margin="15">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="320"/>
@@ -53,7 +51,6 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Left: Account Lookup -->
             <Border Grid.Column="0" Background="#2D2D30" CornerRadius="5" Padding="15">
                 <StackPanel>
                     <TextBlock Text="ACCOUNT LOOKUP"
@@ -67,9 +64,11 @@
                              Height="35"
                              FontSize="14"
                              Padding="5"
-                             Margin="0,0,0,10"/>
+                             Margin="0,0,0,10"
+                             TextChanged="Field_Changed"/>
 
-                    <Button Content="LOOKUP"
+                    <Button x:Name="btnLookup"
+                            Content="LOOKUP"
                             Height="40"
                             Background="#4FC3F7"
                             Foreground="White"
@@ -95,10 +94,70 @@
                                Foreground="Red"
                                TextWrapping="Wrap"
                                Margin="0,15,0,0"/>
+
+                    <Border Background="#1E1E1E" Height="1" Margin="0,20,0,20"/>
+
+                    <TextBlock Text="TRANSACTIONS"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="#4FC3F7"
+                               Margin="0,0,0,15"/>
+
+                    <TextBlock Text="Amount (R)" Foreground="White" Margin="0,0,0,5"/>
+                    <TextBox x:Name="txtAmount"
+                             Height="35"
+                             FontSize="14"
+                             Padding="5"
+                             Margin="0,0,0,10"
+                             TextChanged="Field_Changed"/>
+
+                    <TextBlock Text="Destination (transfer only)" Foreground="Gray" FontSize="12" Margin="0,0,0,5"/>
+                    <TextBox x:Name="txtDestination"
+                             Height="35"
+                             FontSize="14"
+                             Padding="5"
+                             Margin="0,0,0,15"
+                             TextChanged="Field_Changed"/>
+
+                    <Button x:Name="btnDeposit"
+                            Content="DEPOSIT"
+                            Height="35"
+                            Background="#4CAF50"
+                            Foreground="White"
+                            FontWeight="Bold"
+                            BorderThickness="0"
+                            Margin="0,0,0,8"
+                            Cursor="Hand"
+                            Click="btnDeposit_Click"/>
+
+                    <Button x:Name="btnWithdraw"
+                            Content="WITHDRAW"
+                            Height="35"
+                            Background="#FF9800"
+                            Foreground="White"
+                            FontWeight="Bold"
+                            BorderThickness="0"
+                            Margin="0,0,0,8"
+                            Cursor="Hand"
+                            Click="btnWithdraw_Click"/>
+
+                    <Button x:Name="btnTransfer"
+                            Content="TRANSFER"
+                            Height="35"
+                            Background="#2196F3"
+                            Foreground="White"
+                            FontWeight="Bold"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Click="btnTransfer_Click"/>
+
+                    <TextBlock x:Name="lblTransactionResult"
+                               Foreground="LightGreen"
+                               TextWrapping="Wrap"
+                               Margin="0,15,0,0"/>
                 </StackPanel>
             </Border>
 
-            <!-- Right: Transactions -->
             <Border Grid.Column="2" Background="#2D2D30" CornerRadius="5" Padding="15">
                 <Grid>
                     <Grid.RowDefinitions>
