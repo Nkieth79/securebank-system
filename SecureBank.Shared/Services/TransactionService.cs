@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-
 using Microsoft.Data.SqlClient;
 
 namespace SecureBank.Server.Services;
@@ -199,6 +198,7 @@ public class TransactionService
             }
 
             string fromTxQuery = "INSERT INTO Transactions (AccountID, Type, Amount, Description, BalanceAfter, PerformedBy) VALUES (@accId, 'Transfer', @amount, @desc, @balanceAfter, @by)";
+
             using (SqlCommand cmd = new SqlCommand(fromTxQuery, conn))
             {
                 cmd.Parameters.AddWithValue("@accId", fromId);
@@ -218,8 +218,8 @@ public class TransactionService
                 cmd.Parameters.AddWithValue("@by", performedBy);
                 cmd.ExecuteNonQuery();
             }
+
             return "OK|" + newFromBalance.ToString("F2");
-            //return "OK|Transferred " + amount.ToString("F2");
         }
     }
 
@@ -257,5 +257,45 @@ public class TransactionService
         }
     }
 
+    public string GetTransactions(string accountNumber)
+    {
+        using (SqlConnection conn = new SqlConnection(_connectionString))
+        {
+            conn.Open();
 
+            string query = @"SELECT TOP 10 t.TransactionID, t.Type, t.Amount,
+                                    t.BalanceAfter, t.Date, t.Description
+                             FROM Transactions t
+                             INNER JOIN Accounts a ON t.AccountID = a.AccountID
+                             WHERE a.AccountNumber = @acc
+                             ORDER BY t.TransactionID DESC";
+
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@acc", accountNumber);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    List<string> rows = new List<string>();
+                    while (reader.Read())
+                    {
+                        string type = reader["Type"].ToString() ?? "";
+                        string amount = Convert.ToDecimal(reader["Amount"]).ToString("F2");
+                        string balanceAfter = Convert.ToDecimal(reader["BalanceAfter"]).ToString("F2");
+                        string date = Convert.ToDateTime(reader["Date"]).ToString("yyyy-MM-dd HH:mm");
+                        string description = reader["Description"].ToString() ?? "";
+
+                        rows.Add(type + "~" + amount + "~" + balanceAfter + "~" + date + "~" + description);
+                    }
+
+                    if (rows.Count == 0)
+                    {
+                        return "OK|EMPTY";
+                    }
+
+                    return "OK|" + string.Join("~~", rows);
+                }
+            }
+        }
+    }
 }

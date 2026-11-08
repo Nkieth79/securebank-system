@@ -64,6 +64,8 @@ public partial class TellerDashboard : Window
                 lblBalance.Text = "R" + parts[4];
                 lblLookupMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
                 lblLookupMessage.Text = "Found";
+
+                LoadTransactions(accountNumber);
             }
             else
             {
@@ -72,12 +74,67 @@ public partial class TellerDashboard : Window
                 lblCustomerName.Text = "";
                 lblAccountType.Text = "";
                 lblBalance.Text = "R0.00";
+                dgTransactions.ItemsSource = null;
             }
         }
         catch (Exception ex)
         {
             lblLookupMessage.Foreground = System.Windows.Media.Brushes.Red;
             lblLookupMessage.Text = "Error: " + ex.Message;
+        }
+    }
+
+    private void LoadTransactions(string accountNumber)
+    {
+        try
+        {
+            string response = SendAndReceive("GETTRANSACTIONS|" + accountNumber);
+
+            if (!response.StartsWith("OK"))
+            {
+                lblTransactionMessage.Foreground = System.Windows.Media.Brushes.Red;
+                lblTransactionMessage.Text = response;
+                dgTransactions.ItemsSource = null;
+                return;
+            }
+
+            string data = response.Substring(3);
+
+            if (data == "EMPTY")
+            {
+                dgTransactions.ItemsSource = null;
+                lblTransactionMessage.Foreground = System.Windows.Media.Brushes.Gray;
+                lblTransactionMessage.Text = "No transactions yet.";
+                return;
+            }
+
+            string[] rows = data.Split(new string[] { "~~" }, StringSplitOptions.None);
+
+            var list = new List<TransactionRow>();
+            foreach (string row in rows)
+            {
+                string[] fields = row.Split('~');
+                if (fields.Length >= 5)
+                {
+                    list.Add(new TransactionRow
+                    {
+                        Type = fields[0],
+                        Amount = "R" + fields[1],
+                        BalanceAfter = "R" + fields[2],
+                        Date = fields[3],
+                        Description = fields[4]
+                    });
+                }
+            }
+
+            dgTransactions.ItemsSource = list;
+            lblTransactionMessage.Foreground = System.Windows.Media.Brushes.LightGreen;
+            lblTransactionMessage.Text = list.Count + " transactions loaded.";
+        }
+        catch (Exception ex)
+        {
+            lblTransactionMessage.Foreground = System.Windows.Media.Brushes.Red;
+            lblTransactionMessage.Text = "Error: " + ex.Message;
         }
     }
 
@@ -155,6 +212,8 @@ public partial class TellerDashboard : Window
                     lblAccountType.Text = lookupParts[3];
                     lblBalance.Text = "R" + lookupParts[4];
                 }
+
+                LoadTransactions(account);
             }
         }
         else
@@ -180,4 +239,13 @@ public partial class TellerDashboard : Window
         int bytesRead = _stream.Read(buffer, 0, buffer.Length);
         return Encoding.UTF8.GetString(buffer, 0, bytesRead);
     }
+}
+
+public class TransactionRow
+{
+    public string Type { get; set; } = "";
+    public string Amount { get; set; } = "";
+    public string BalanceAfter { get; set; } = "";
+    public string Date { get; set; } = "";
+    public string Description { get; set; } = "";
 }

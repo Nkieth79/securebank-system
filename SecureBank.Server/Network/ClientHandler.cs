@@ -4,7 +4,6 @@ using SecureBank.Server.Services;
 using SecureBank.Shared.Models;
 using SecureBank.Shared.Protocol;
 
-
 namespace SecureBank.Server.Network;
 
 public class ClientHandler
@@ -27,7 +26,7 @@ public class ClientHandler
     {
         try
         {
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[8192];
 
             while (true)
             {
@@ -128,6 +127,7 @@ public class ClientHandler
 
             return _transactionService.Transfer(parts[1], parts[2], decimal.Parse(parts[3]), _loggedInUser.UserID);
         }
+
         if (command == "LOOKUP")
         {
             if (parts.Length < 2)
@@ -136,6 +136,16 @@ public class ClientHandler
             }
 
             return _transactionService.LookupAccount(parts[1]);
+        }
+
+        if (command == "GETTRANSACTIONS")
+        {
+            if (parts.Length < 2)
+            {
+                return MessageProtocol.Build(MessageProtocol.ResponseError, "Missing account number");
+            }
+
+            return _transactionService.GetTransactions(parts[1]);
         }
 
         return MessageProtocol.Build(MessageProtocol.ResponseError, "Unknown command");
